@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Evaluating mathematical reasoning of foundation models in visual contexts">
+  <meta name="keywords" content="MathVista, Math Vista">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> DisCRn: Evaluating Discriminatory Cross-Modal Reasoning in Audio, Video, Image, and 3D</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script> -->
+  <!-- <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+/Users/panlu/Library/Mobile Documents/com~apple~CloudDocs/ImageMath/visual-mathqa-server/data_final/images
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script> -->
+
+  <link rel="icon" href="./static/images/dalee_logo.png">
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/leaderboard.css">
+
+  <!-- <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator_bulma.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script> -->
+  <script type="text/javascript" src="static/js/sort-table.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/explorer-index.js"></script>
+  <script src="./static/js/question_card.js"></script>
+
+  <script src="./static/js/leaderboard_testmini.js"></script>  
+  <script src="./data/results/output_folders.js" defer></script>
+  <script src="./data/results/model_scores.js" defer></script>
+
+  <script src="./visualizer/data/data_public.js" defer></script>
+</head>
+<body>
+<!-- 
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://keunhong.com">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a> 
+     @PAN TODO: consider adding links? 
+      <div class="navbar-item has-dropdown is-hoverable"> 
+        <a class="navbar-link">
+          More Research
+        </a> 
+       <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://chameleon-llm.github.io/">
+            <b>Chameleon</b> <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+          </a>
+          <a class="navbar-item" href="https://scienceqa.github.io/">
+            <b>ScienceQA</b> <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+          </a>
+          <a class="navbar-item" href="https://github.com/OpenGVLab/LLaMA-Adapter">
+            <b>LLaMA-Adapter (V2)</b> <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+          </a>
+          <a class="navbar-item" href="https://promptpg.github.io/">
+            PromptPG
+          </a>
+          <a class="navbar-item" href="https://arxiv.org/abs/2307.10635">
+            SciBench
+          </a>
+          <a class="navbar-item" href="https://arxiv.org/abs/2305.12524">
+            TheoremQA
+          </a>
+          <a class="navbar-item" href="https://lila.apps.allenai.org/">
+            Lila
+          </a>
+          <a class="navbar-item" href="https://iconqa.github.io/">
+            IconQA
+          </a>
+          <a class="navbar-item" href="https://lupantech.github.io/inter-gps/">
+            Inter-GPS
+          </a>
+        </div> 
+      </div>
+    </div>
+
+  </div>
+</nav> -->
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title is-bold">
+            <img src="static/images/dalee_logo.png" style="width:1em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista" style="vertical-align: middle">DisCRn</span>
+            </h1>
+          <h2 class="subtitle is-3 publication-subtitle">
+            Evaluating Discriminatory Cross-Modal Reasoning in Audio, Video, Image, and 3D
+            <!-- <br> -->
+            <!-- with GPT-4V, Bard, and Other Large Multimodal Models -->
+          </h2>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://artemisp.github.io/">Artemis Panagopoulou</a><sup style="color:#6fbf73;">1</sup><sup style="color:#ed4b82;">*</sup>,</span>
+            <span class="author-block">
+              <a href="">Le Xue</a><sup style="color:#ed4b82">2</sup>,</span>
+            <span class="author-block">
+              <a href="">Honglu Zhou</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="">Silvio Savarese</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="">Ran Xu</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://chunyuan.li/">Caiming Xiong</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="">Juan Carlos Niebles</a><sup style="color:#ffac33">3</sup>,
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup style="color:#6fbf73;">1</sup>University of Pennsylvania,</span><br>
+            <span class="author-block"><sup style="color:#ed4b82">2</sup>Salesforce Research</span><br>
+            <span class="author-block"><sup style="color:#ed4b82">*</sup>Work done during internship at Salesforce.</span>
+            <!-- <span class="paper-block"><b style="color:#f41c1c">ICLR 2024 Oral</b> (85 in 7304, 1.2%)</span> -->
+          </div>
+        
+          <!-- <section> -->
+            <!-- <div class="section" id="org-banners" style="display:fle">
+              <a href="https://www.ucla.edu/" target="_blank" rel="external">
+                  <img class="center-block org-banner" src="static/images/ucla.png" style="height:3em">
+              </a>
+              <a href="https://www.washington.edu/" target="blank" class="ext-link">
+                  <img class="center-block org-banner" src="static/images/uw.png" style="height:3em">
+              </a>
+              <a href="https://www.microsoft.com/en-us/research/" target="_blank" rel="external">
+                  <img class="center-block org-banner" src="static/images/microsoft.png" style="height:3em">
+              </a>
+            </div> -->
+          <!-- </section> -->
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <!-- <span class="link-block">
+                @PAN TODO: change links
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span> -->
+              <span class="link-block">
+                <a href="https://lupantech.github.io/papers/arxiv24_benchmark.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <!-- <span class="link-block">
+                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span> -->
+              <!-- Dataset Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🤗</p>
+                  </span>
+                  <span>Dataset</span>
+                </a>
+              </span> -->
+              <!-- Visualization Link. -->
+              <span class="link-block">
+                <a href="https://discrn.github.io/#visualization"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🔮</p>
+                  </span>
+                  <span>Visualize</span>
+                </a>
+              </span>
+              <!-- Leaderboard Link. -->
+              <span class="link-block">
+                <a href="https://discrn.github.io/#leaderboard"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🏆</p>
+                  </span>
+                  <span>Leaderboard</span>
+                </a>
+              </span>
+              <!-- Twitter Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🌐</p>
+                  </span>
+                  <span>Twitter</span>
+                </a>
+              </span> -->
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container" style="margin-top: -150px; margin-bottom: -100px;">
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/evolution.png" alt="geometric reasoning" width="84%"/>
+              <p> 
+              <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+              <span class="mathvista">DisCRn</span>
+              evaluates cross-modal models across various modalities concurrently, unlike any previous work. 
+              </p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/categories.jpg" alt="geometric reasoning" width="84%"/>
+              <p> Accuracy scores of three recent cross-modal models (i.e. X-InstructBLIP, CREMA, and OneLLM) on our proposed dataset
+                <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/><span class="mathvista">DisCRn</span>
+              across different subsets of the dataset. </b>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container" style="margin-bottom: 2vh;">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Introduction</h2>
+        <div class="content has-text-justified">
+          <p>
+          In the pursuit of a comprehensive understanding of the world through artificial intelligence, integrating multiple modalities such as images, audio, and 3D into AI models is essential. This integration facilitates a deeper, multifaceted comprehension of data inputs, transcending what isolated sensory modalities can achieve alone. Recent advancements in Multimodal Large Language Models (MLLMs) have significantly expanded the capabilities of these systems, enabling them to process and interpret complex, multimodal information. Despite these developments, there remains a notable deficiency in benchmarks capable of adequately evaluating the proficiency of these models across multiple modalities simultaneously.
+          </p>
+          <p>
+            To bridge this gap, we introduce <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>DisCRn, a benchmark encompassing 65.5k examples designed to evaluate <b>Dis</b>criminatory <b>C</b>ross-modal <b>R</b>easo<b>n</b>ing abilities across up to four modalities (image, audio, video, and 3D) within a single example. Our dataset generation leverages language captions as the unifying modality across diverse datasets, crafting discriminatory questions and answers validated through a mixture-of-models round-trip-consistency check. Contrary to prevailing methodologies that utilize closed-source, trillion-parameter LLMs, our approach to dataset generation employs open-source LLMs with up to 13 billion parameters.
+          </p>
+          <p>
+            Through a human evaluation, we show that our method yields high-quality examples. We further validate the dataset's challenge by benchmarking against state-of-the-art models capable of reasoning across the four modalities, along with a robust captioning baseline.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+</div>
+</section>
+
+<section class="section">
+  <div class="container">
+    
+    <div class="columns is-centered">
+      <div class="column is-full has-text-centered content">
+
+        <h2 class="title is-3" id="leaderboard_test">Leaderboard </h2>
+        <div class="content">
+          <p class="mt-3">Accuracy scores on <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">DisCRn</span>.
+          </p>
+          <div style="overflow-x:scroll;">
+            <table class="js-sort-table" id="results">
+              <tr>
+                  <td class="js-sort-number"><strong>#</strong></td>
+                  <td class="js-sort-number"><strong>Model</strong></td>
+                  <td class="js-sort-number"><strong>Method</strong></td>
+                  <td class="js-sort-number"><strong>LLM Base</strong></td>
+                  <td class="js-sort-number"><strong>Source</strong></td>
+                  <td class="js-sort-number"><strong>Date</strong></td>
+                  <td class="js-sort-number"><strong><u>ALL</u></strong></td>
+                  <td class="js-sort-number"><strong>Random All</strong></td>
+                  <td class="js-sort-number"><strong>Random MC2</strong></td>
+                  <td class="js-sort-number"><strong>Random MC3</strong></td>
+                  <td class="js-sort-number"><strong>Random MC4</strong></td>
+                  <td class="js-sort-number"><strong>High Sim All</strong></td>
+                  <td class="js-sort-number"><strong>High Sim MC2</strong></td>
+                  <td class="js-sort-number"><strong>High Sim MC3</strong></td>
+                  <td class="js-sort-number"><strong>High Sim MC4</strong></td>
+                  <td class="js-sort-number"><strong>MSNR</strong></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td><b class="best-score-text">CREMA 🥇</b></td>
+                <td>MLMM 🖼️</td>
+                <td>FlanT5-xl</td>
+                <td><a href="https://arxiv.org/abs/2402.05889" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2024-04-20</td>
+                <td><b class="best-score-text">62.2</b></td>
+                <td><b class="best-score-text">63.8</b></td>
+                <td><b class="best-score-text">62.6</b></td>
+                <td><b class="best-score-text">67.4</b></td>
+                <td><b class="best-score-text">56.6</b></td>
+                <td><b class="best-score-text">58.7</b></td>
+                <td>58.6</td>
+                <td><b class="best-score-text">59.5</b></td>
+                <td><b class="best-score-text">51.7</b></td>    
+                <td>0.33</td>                          
+              </tr> 
+              <tr>
+                <td>2</td>
+                <td>OneLLM</td>
+                <td>MLMM 🖼️</td>
+                <td>LLaMA-2</td>
+                <td><a href="https://arxiv.org/abs/2312.03700" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2024-04-20</td>
+                <td>54.8</td>
+                <td>52.7</td>
+                <td>62.0</td>
+                <td>25.6</td>
+                <td>25.3</td>
+                <td>58.4</td>
+                <td>63.3</td>
+                <td>27.8</td>
+                <td>10.3</td>
+                <td>0.19</td>
+            </tr> 
+            <tr>
+              <td>3</td>
+              <td>Predicted Caption</td>
+              <td>LLM 💬</td>
+              <td>Vicuna1.5 (13b)</td>
+              <td><a href="" class="ext-link" style="font-size: 16px;">Link</a></td>
+              <td>2024-04-20</td>
+              <td>50.6</td>
+              <td>53.4</td>
+              <td>54.3</td>
+              <td>50.7</td>
+              <td>49.4</td>
+              <td>46.0</td>
+              <td>46.3</td>
+              <td>44.6</td>
+              <td>41.4</td>
+              <td><b class="best-score-text">4.82</b></td>
+          </tr>   
+              <tr>
+                <td>4</td>
+                <td>X-InstructBLIP</td>
+                <td>MLMM 🖼️</td>
+                <td>Vicuna1.1</td>
+                <td><a href="https://arxiv.org/pdf/2311.18799" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2024-04-20</td>
+                <td>38.1</td>
+                <td>39.9</td>
+                <td>38.1</td>
+                <td>38.3</td>
+                <td>33.7</td>
+                <td>39.8</td>
+                <td>38.8</td>
+                <td>40.6</td>
+                <td>37.9</td>
+                <td>0.99</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Random Caption</td>
+              <td>LLM 💬</td>
+              <td>Vicuna1.5 (13b)</td>
+              <td><a href="" class="ext-link" style="font-size: 16px;">Link</a></td>
+              <td>2024-04-20</td>
+              <td>14.9</td>
+              <td>15.7</td>
+              <td>17.4</td>
+              <td>10.6</td>
+              <td>7.2</td>
+              <td>13.6</td>
+              <td>10.3</td>
+              <td>7.7</td>
+              <td>14.6</td>
+              <td>-</td>
+          </tr>     
+          
+          <tr>
+            <td>5</td>
+            <td>Question Only</td>
+            <td>LLM 💬</td>
+            <td>Vicuna1.5 (13b)</td>
+            <td><a href="" class="ext-link" style="font-size: 16px;">Link</a></td>
+            <td>2024-04-20</td>
+            <td>2.5</td>
+            <td>2.7</td>
+            <td>2.6</td>
+            <td>3.0</td>
+            <td>1.2</td>
+            <td>2.2</td>
+            <td>2.4</td>
+            <td>1.5</td>
+            <td>0.0</td>
+            <td>-</td>
+        </tr>  
+        
+        <tr>
+          <td>6</td>
+          <td>Oracle Caption</td>
+          <td>LLM 💬</td>
+          <td>Vicuna1.5 (13b)</td>
+          <td><a href="" class="ext-link" style="font-size: 16px;">Link</a></td>
+          <td>2024-04-20</td>
+          <td>59.3</td>
+          <td>60.9</td>
+          <td>61.2</td>
+          <td>60.0</td>
+          <td>60.2</td>
+          <td>56.7</td>
+          <td>56.4</td>
+          <td>58.6</td>
+          <td>62.1</td>
+          <td>5.82</td>
+      </tr>  
+
+      <tr>
+        <td>7</td>
+        <td>Human Performance</td>
+        <td>🧑</td>
+        <td>🧠</td>
+        <td><a href="" class="ext-link" style="font-size: 16px;">Link</a></td>
+        <td>2024-04-20</td>
+        <td>93.3</td>
+        <td>96.7</td>
+        <td>100.0</td>
+        <td>90.0</td>
+        <td>100.0</td>
+        <td>90.0</td>
+        <td>90.0</td>
+        <td>95.0</td>
+        <td>85.0</td>
+        <td>-</td>
+      </tr>  
+      </table>
+    </div>
+
+          <!-- <b>Human Performance*:</b> Average human performance from AMT annotators who have high school diplomas or above. -->
+          <br>
+          <b>Method types:</b> <b>MLMM 🖼️:</b> Cross-Modal model, <b>LMM 💬:</b> Large Language Model with Predicted Captions, or Question-Only baseline, or Random Captions baseline.
+          <br>
+          <b>MCX:</b> Multiple choice with X options. <b>High Similarity:</b> Negative sampling based on high similarity of captions. <b>Random:</b> Random negative sampling. 
+          <br>
+          <br>
+          <p><strong>Multimodal Signal-to-Noise Ratio (MSNR):</strong> Incorporating the complexities of cross-modal models that employ LLMs for prediction, and acknowledging potential biases from the use of LLMs in dataset generation, we introduce a new evaluation metric MSNR. This metric adapted from the information-theoretic signal-to-noise ratio~[<a href="https://citation-needed.com">Johnson 2006</a>] specifically addresses biases inherent in LLMs by quantifying the incremental performance benefits derived from multimodal inputs—considered the 'signal' —against the backdrop of LLM biases, viewed here as 'noise'. Specifically, with \( S_m \), \( S_0 \), and \( S_r \) representing the model's performance with multimodal inputs, caption (no input), and caption (random) respectively, MSN is calculated using the formula:</p>
+
+          <p>$$\textbf{MSNR} = \frac{S_m - \text{mean}(S_0, S_r)}{\text{mean}(S_0, S_r)}$$</p>
+      
+          <p>This formulation not only quantifies the performance improvements but also contextualizes them within the variability inherent in simpler text-only inputs, thereby providing a robust measure of the efficacy of multimodal integration.</p>
+          <br>
+          <br>
+          <div>
+          <p>🚨 To submit your results to the leaderboard, please send to <a href="mailto:artemisp@seas.upenn.edu">this email</a> with your result json files.</p>
+          <!-- <p>🚨 For more submission details, please refer to <a href="https://github.com/lupantech/MathVista?tab=readme-ov-file#-leaderboard-">this link</a> and <a href="https://github.com/lupantech/MathVista?tab=readme-ov-file#-evaluations-on-mathvista">this link</a>. -->
+          </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- DATASET SECTION -->
+<section class="hero is-light is-small">
+  <div class="hero-body has-text-centered">
+    <!-- <h1 class="title is-1 mathvista"><img src="static/images/mathvista.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>MathVista Dataset</h1> -->
+  <h1 class="title is-1 mathvista">
+    <img src="static/images/dalee_logo.png" style="width:1em;vertical-align: middle" alt="Logo"/>
+    <span class="mathvista" style="vertical-align: middle">DisCRn Dataset</span>
+  </h1>
+  </div>
+</section>
+
+<!-- <section class="section">
+  <div class="container" style="margin-bottom: 2vh;">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Introduction</h2>
+        <div class="content has-text-justified">
+          <p> -->
+            
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered has-text-centered">
+      <!-- <div class="column is-full-width has-text-centered"> -->
+        <div class="column is-four-fifths">
+        <h2 class="title is-3">Overview</h2>
+        <div class="content has-text-justified">
+          <p>
+            <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">DisCRn</span> dataset introduced in this paper comprises <b>65.5k</b> distinct samples, featuring a total of <b>10.6k</b> distinct questions of average length 9.5 tokens over a vocabulary of size 2.6k.
+            The inputs span up to <b>four different modalities</b> across audio, video, image and 3D sourced from <b>8 different captioning datasets</b> using a mixture-of-models round-trip-consistency method to generate questions and verify answers.
+            A human inspection of the data showed that our data generation pipeline achieves <b>93.3% accuracy</b> in generating valid examples to evaluate cross-modal models.
+          </p>
+
+          <div id="results-carousel" class="carousel results-carousel">
+            <div class="box m-5">
+              <div class="content has-text-centered">
+                <img src="static/images/examples1.png" alt="examples" width="100%"/>
+                <p> Examples across different categories: Location, Comparison, and Action in <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                  <span class="mathvista">DisCRn</span>. Top row corresponds to random sampling, and bottom row to high similarity. </p>
+              </div>
+            </div>
+            <div class="box m-5">
+              <div class="content has-text-centered">
+                <img src="static/images/examples2.png" alt="examples" width="100%"/>
+                <p> Examples across different categories: Counting, Motion, and Sports in <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                  <span class="mathvista">DisCRn</span>. Top row corresponds to random sampling, and bottom row to high similarity. </p>
+              </div>
+            </div>
+            <div class="box m-5">
+              <div class="content has-text-centered">
+                <img src="static/images/examples3.png" alt="examples" width="60%"/>
+                <p> Examples across different categories: Existence, and Emotion in <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                  <span class="mathvista">DisCRn</span>. Top row corresponds to random sampling, and bottom row to high similarity. </p>
+              </div>
+            </div>
+
+            <div class="box m-5">
+              <div class="content has-text-centered">
+                <img src="static/images/source_datasets.png" alt="examples" width="100%"/>
+                <p> Summary of the <b>8 different source captioning datasets</b> in <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                  <span class="mathvista">DisCRn</span> across <b>4 modalities</b> (audio, video, image, and 3D).
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <h2 class="title is-3">Statistics</h2>
+        <p>Notable statistics of <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+          <span class="mathvista">DisCRn</span></p>
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/wordcloud.png" alt="wordcloud" class="stats-image">
+              <p>WordCloud of question words in  <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                <span class="mathvista">DisCRn</span></p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/answer_modality_distribution.png" alt="answer modality" class="stats-image"/>
+              <p>Answer modality distribution of problems within <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                <span class="mathvista">DisCRn</span></p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/category_stats.png" alt="category" class="stats-image"/>
+              <p>Distribution of category types within <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                <span class="mathvista">DisCRn</span></p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/summary_of_statistics.png" alt="summary-stats" class="stats-image"/>
+              <p>Statistics about <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                <span class="mathvista">DisCRn</span>. 
+                <!-- Questions with a length greater than 60 are categorized as 61 for visualization simplicity -->
+              </p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/question_lengths.png" alt="qs-len" class="stats-image"/>
+              <p>Distribution of the number of words per question in <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                <span class="mathvista">DisCRn</span>. 
+                <!-- Questions with a length greater than 60 are categorized as 61 for visualization simplicity -->
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <h2 class="title is-3">Data Generation</h2>
+        <p>Mixture-of-Models Round-Trip-Consistency data generation pipeline for <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+          <span class="mathvista">DisCRn</span></p>
+          <style>
+            .step1 { color: rgb(226, 148, 108); }
+            .step2 { color: rgb(94, 148, 211); }
+            .step3 { color: rgb(110, 40, 107); }
+            .step4 { color: rgb(130, 162, 111); }
+        </style>
+
+        <div id="results-carousel" class="carousel results-carousel">
+
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/step1.png" alt="step1" width="80%"/>
+              <p> <p class="step1"><strong>Step 1: Negative Sampling Selection</strong></p> We employ two negative selection strategies: <em>high similarity</em> and <em>random</em> to enhance the evaluation potential of the dataset. For the high similarity negative samples, we first encode all captions across all modalities. Subsequently, we anchor one modality randomly as the basis for selection. From this anchored modality, we identify and select a negative sample from among the fifty most similar instances across the different modalities, as ranked by the cosine similarity of their text captions. This selection process results in tuples of two, three, and four different modalities denoted as \(D_{M_j}[i_j]\) \(j \in [2\ldots 4]\), where \(M_j\) denotes the different modalities in the dataset and \(i_j\) indexes the selected samples. For the random setup, we perform the same procedure but sample randomly instead by similarity.</p>
+
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/step2.png" alt="step2" width="80%"/>
+              <p><p class="step2"><strong>Step 2: Question Generation</strong></p> Upon generating tuples in Step 1, we employ an LLM to generate discriminatory questions. For each tuple, we provide the LLM with four in-context examples to facilitate the creation of a question \(q[D_{M_j}[i_j] \ j \in [2\ldots 4]]\), which is then considered for inclusion in the final dataset. We implement a filtering process to exclude questions that focus on textual qualities rather than the scenes depicted by the modalities. This excludes questions containing terms (and derivatives) such as 'word', 'text', 'verb', 'noun', 'describe', 'question', 'sentence', 'detail', 'visual', 'image', 'video', 'audio', 'sound', 'heard', '3d', 'point cloud', 'caption', 'more elements', 'most elements', 'more objects', 'most objects', 'more colors', 'most colors', 'more than one', 'similar', 'rating', 'score'. From an initial set of 574k samples, this word-based filtering reduces the pool to 239k samples.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/step3.png" alt="step3" width="65%"/>
+              <p><p class="step3"><strong>Step 3: Answer-Explanation Generation</strong></p> Building on the captions in the original dataset and the questions refined in Step 2, we require the same LLM to answer and explain its reasoning using four in-context examples.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/step4.png" alt="step4" width="80%"/>
+             <p> <p class="step4"><strong>Step 4: Round-Trip-Consistency (RTC) Check</strong></p> To validate the quality of the dataset, we implement a round-trip-consistency (RTC) check using an ensemble of distinct models. This check involves prompting different LLMs to answer and explain the discriminatory questions based on the captions. We then retain a sample only if it meets different filtering criteria and compare them: Majority Vote, Unanimous Vote, Majority Vote Permute, and Unanimous Vote Permute, under all possible permutations of the input cross-modal options, all of the models are consistent and agree with the original answer. To ensure minimal randomness and maximize the likelihood of response convergence, the models employ greedy decoding with a temperature setting of 0.1 during this process. As demonstrated, the use of permutations yields higher-quality examples. This is due to the phenomenon of 'selection bias' which highlights the LLM's vulnerability to multiple choice option perturbations. By selecting only those examples that demonstrate robustness under choices permutations, we effectively control for the LLM's inherent bias towards specific options, thereby increasing the overall correctness of the dataset.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/rtc_performance.png" alt="statistics" width="80%"/>
+              <p>Filtering statistics across different methods in <p class="step4">Step 4</p></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="columns is-centered m-6">
+      <div class="column is-max-desktop has-text-centered">
+        <h2 class="title is-3" id="visualization">Visualization</h2>
+        <iframe src="visualizer/explore.html" style="width: 100%;min-height: 100vh; border-radius: 20px;"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS SECTION
+<section class="hero is-light is-small">
+  <div class="hero-body has-text-centered">
+    <h1 class="title is-1 mathvista">Experiment Results</h1>
+  </div>
+</section> -->
+
+<!-- <section class="section">
+  <div class="container">
+
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <h2 class="title is-3">Results on Existing Foundation Models</h2> -->
+        <!-- <p>One example for each reasoning skill required in <span class="mathvista">MathVista</span></p> -->
+        <!-- <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/score_leaderboard_gpt4v.png" alt="grade-lv" width="60%"/>
+              <p>Accuracy scores of primary baselines on the testmini subset (1,000 examples) of <img src="static/images/mathvista.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+                <span class="mathvista">MathVista</span>. 
+                <br>
+                Both CoT GPT-4 and PoT GPT-4 are augmented with Bard captions and OCR text.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/bard_error.png" alt="grade-lv" width="70%"/>
+              <p>
+                Error analysis of Bard results: (a) presents errors in answers and explanations; <br>
+                (b) delves into the details of wrong explanations. <br>
+                Notations: “Answer” is “Ans.”, “Explanation” is “Exp.”, “Partially Correct” is “Partial”, <br>
+                and “Not applicable” refers to unanswerable or indeterminate cases.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/grade-lv.png" alt="grade-lv" width="90%"/>
+              <p>Average accuracy scores across different grade levels for leading foundation models</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/contexts.png" alt="contexts" width="90%"/>
+              <p>Accuracy scores of leading baselines across various visual contexts</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/ablation.png" alt="geometric reasoning" width="90%"/>
+              <p>Average accuracy scores of LLM baselines under various visual inputs</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- <div class="container is-full has-text-centered content m-6" id="result-table">
+      <h2 class="title is-3" id="explorer">Explorer</h2>
+      <p>Explore the outputs of each model on <img src="static/images/mathvista.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+        <span class="mathvista">MathVista</span></p>
+      <div class="level has-text-centered" style="position: sticky; top: 0; z-index: 20;">
+        <div class="level-item box m-3" style="width: 30%; background: rgba(250, 250, 250, 1);">
+          <button class="button" style="width: 100%; border: none; background: rgba(250, 250, 250, 1);" id="refresh-qids">
+            <span class="icon is-large">
+              <i class="fa fa-redo fa-lg" aria-hidden="true"></i>
+            </span>
+            <p class="title is-4 m-0">Refresh Question</p>
+          </button>
+        </div>
+        <div class="level-item box m-3" style="width: 30%; background: rgba(250, 250, 250, 1);">
+          <div class="dropdown" style="width: 100%;">
+            <div class="dropdown-trigger has-text-justified" style="width: 100%; ">
+              <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="width: 100%; border: none; background: rgba(250, 250, 250, 1);">
+                <p class="title m-0 is-4 dropdown-display">Multimodal Bard</p>
+                <span class="icon is-large" style="position: absolute; right:0;">
+                  <i class="fas fa-angle-down fa-lg" aria-hidden="true"></i>
+                </span>
+              </button>
+            </div>
+            <div class="dropdown-menu" id="dropdown-menu" role="menu" style="width:100%;">
+              <div class="dropdown-content">
+                <a class="dropdown-item">
+                  Dropdown item
+                </a>
+                <a class="dropdown-item">
+                  Other dropdown item
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="level-item box m-3" style="width: 30%; background: rgba(250, 250, 250, 1);">
+          <div class="dropdown" style="width: 100%;">
+            <div class="dropdown-trigger has-text-justified" style="width: 100%;">
+              <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="width: 100%; border: none; background: rgba(250, 250, 250, 1);">
+                <p class="title m-0 is-4 dropdown-display">CoT GPT4 (Caption+OCR)</p>
+                <span class="icon is-large" style="position: absolute; right:0;">
+                  <i class="fas fa-angle-down fa-lg" aria-hidden="true"></i>
+                </span>
+              </button>
+            </div>
+            <div class="dropdown-menu" id="dropdown-menu" role="menu" style="width:100%;">
+              <div class="dropdown-content">
+                 <a class="dropdown-item">
+                  Dropdown item
+                </a>
+                <a class="dropdown-item">
+                  Other dropdown item
+                </a> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>  -->
+</section>
+
+
+<section class="section">
+  <div class="container" style="margin-bottom: 2vh;">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Ethics Statement</h2>
+        <div class="content has-text-justified">
+          <p>
+            In conducting this research, we acknowledge the significant limitations and potential dangers associated with the use of Large Language Models (LLMs). One of the primary concerns is the presence of inherent biases within LLMs, which are a direct consequence of the data on which they are trained. These biases can inadvertently perpetuate harmful stereotypes and lead to discriminatory outcomes, particularly in sensitive applications. Additionally, LLMs, especially those with large parameter counts, may generate outputs that are factually incorrect or misleading, posing a risk in contexts that demand high levels of accuracy and reliability. To mitigate these risks we inspected samples of the dataset and used image sources that would limit the potential of generation of such harmful questions. However, we emphasize the importance of ongoing vigilance and the need for responsible use of these models and our dataset to prevent unintended negative consequences.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+</div>
+</section>
+
+<section>
+  <div class="section" id="org-banners" style="display:flex">
+    <a href="https://www.upenn.edu/" target="_blank" rel="external">
+        <img class="center-block org-banner" src="static/images/University-of-Pennsylvania-Logo.png"%>
+    </a>
+    <a href="https://www.salesforceairesearch.com/" target="blank" class="ext-link">
+        <img class="center-block org-banner" src="static/images/salesforce-research.png">
+    </a>
+  </div>
+</section>
+
+
+
+<!-- @PAN TODO: bibtex -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3 has-text-centered">BibTeX</h2>
+    <pre><code>
+      TBD
+    </code></pre>
+  </div>
+</section>
+
+<section>
+  <div class="section" id="org-banners" style="display:flex">
+    <a href="https://www.upenn.edu/" target="_blank" rel="external">
+        <img class="center-block org-banner" src="static/images/University-of-Pennsylvania-Logo.png"%>
+    </a>
+    <a href="https://www.salesforceairesearch.com/" target="blank" class="ext-link">
+        <img class="center-block org-banner" src="static/images/salesforce-research.png">
+    </a>
+  </div>
+</section>
+
+
+
+<footer class="footer">
+  <!-- <div class="container"> -->
+    <div class="content has-text-centered">
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is website adapted from <a href="https://mathvista.github.io/">MathVista</a>, licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            The <img src="static/images/dalee_logo.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">DisCRn</span> logo was created using <a link="https://openai.com/index/dall-e-2/">DALL•E</a> through the <a link="https://chatgpt.com/">ChatGPT (GPT-4)</a> UI on June 5, 2024. 
+          </p>
+        </div>
+      </div>
+    </div>
+  <!-- </div> -->
+</footer>
+
+</body>
+</html>
