@@ -10,7 +10,7 @@ DATA_FILE = "data_public.js"; // default, answers for testmini, no answer for te
 let number_options = [20, 50, 100, 200];    
 let question_types = ["All", "MC2", "MC3", "MC4"];
 let selection_types = ["All", "High Similarity", "Random"];
-let categories = ["All", "Location", "Comparison", "Action", "Counting", "Motion", "Sports", "Object Existence", "Emotion", "Other"];
+let categories = ["All", "Emotions & Sentory Experiences", "Time, Space & Location", "Motion & Physical Activity", "Audio, Sound & Music", "Environmental & Scene Context", "Threats, Risks & Safety", "Humans, Animals & Social Behavior", "Objects, Tools & Technology", "Other"];
 let answer_types = ["All", "Audio", "Video", "3D ", "Image"];
 // let source_types = ["All", "Audio+Video ()", "Video ()", "3D  ()", "Image ()",];
 
@@ -144,13 +144,17 @@ function create_number(data) {
     let i = 0;
     for (each in data.examples) {
         if (data.examples[each].modality === "audio") {
-            box_data.push(make_audio(data.examples[each].url, String.fromCharCode('A'.charCodeAt(0) + i)));
+            start = data.examples[each].meta.start_time;
+            end = data.examples[each].meta.end_time;
+            box_data.push(make_audio(data.examples[each].url, start, end, String.fromCharCode('A'.charCodeAt(0) + i)));
         } else if (data.examples[each].modality === "pc") {
             box_data.push(make_3d(data.examples[each].url, String.fromCharCode('A'.charCodeAt(0) + i)));
         } else if (data.examples[each].modality === "image") {
             box_data.push(make_img(data.examples[each].url, String.fromCharCode('A'.charCodeAt(0) + i)));
         } else if (data.examples[each].modality === "video") {
-            box_data.push(make_video(data.examples[each].url, String.fromCharCode('A'.charCodeAt(0) + i)));
+            start = data.examples[each].meta.start_time;
+            end = data.examples[each].meta.end_time;
+            box_data.push(make_video(data.examples[each].url, start, end, String.fromCharCode('A'.charCodeAt(0) + i)));
         }
         i+=1;
 
@@ -164,7 +168,6 @@ function create_number(data) {
 
     box_data.push(answer);
     html = make_box(box_data) + "<hr/>";
-    console.log(html);
 
     return html;
 }
@@ -197,11 +200,49 @@ function make_img(path, choice_txt) {
     return html;
 }
 
-function make_video(path, choice_txt) {
-    if (path === null) return "";
-    path = path.replace("&start", "?start");
-    path = path.replace("end", "amp;end");
-    let html = `<div style="border:2px solid Gainsboro; margin: 10px; padding: 5px;"><p>Scene ${choice_txt}.&nbsp;&nbsp;</p><iframe frameborder="0" allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="${path}" alt="number video" class="question-img"></iframe></div>`;
+function make_video(path, choice_txt, start = null, end = null) {
+    if (!path) return "";
+
+    // Extract YouTube video ID
+    let youtubeId = null;
+    const watchMatch = path.match(/v=([^&]+)/);
+    const embedMatch = path.match(/embed\/([^?&]+)/);
+
+    if (watchMatch) {
+        youtubeId = watchMatch[1];
+    } else if (embedMatch) {
+        youtubeId = embedMatch[1];
+    }
+
+    if (!youtubeId) return "Invalid YouTube URL";
+
+    // Construct embed URL
+    let embedUrl = `https://www.youtube.com/embed/${youtubeId}`;
+    let params = [];
+    if (start !== null) params.push(`start=${start}`);
+    if (end !== null) params.push(`end=${end}`);
+    params.push("autoplay=0");
+
+    if (params.length > 0) {
+        embedUrl += "?" + params.join("&");
+    }
+
+    // Final HTML block
+    let html = `
+    <div style="border:2px solid Gainsboro; margin: 10px; padding: 5px;">
+        <p>Scene ${choice_txt}.&nbsp;&nbsp;</p>
+        <iframe
+            frameborder="0"
+            allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            src="${embedUrl}"
+            alt="number video"
+            class="question-img"
+            width="560"
+            height="315"
+        ></iframe>
+    </div>`;
+    
     return html;
 }
 
@@ -226,20 +267,40 @@ function onPlayerReady(event) {
     console.log('Player is ready');
 }
 
-function make_audio(path, choice_txt) {
-    if (path === null) return "";
-    let youtubeId = path.split('embed/')[1].split('&')[0];
-    path = path.replace("&start", "?start");
-    path = path.replace("end", "amp;end");
-    path += "&amp;autoplay=0"
+function make_audio(path, start, end, choice_txt) {
+    if (!path) return "";
 
-    // HTML container for the YouTube player
-    
-    let html = `<div style="border:2px solid Gainsboro; margin: 10px; padding: 5px;"><p>Scene ${choice_txt}.&nbsp;&nbsp;</p><div id="playerContainer${youtubeId}">
-    <iframe id='${youtubeId}-audio' frameborder="0" width=1 height=1 src="${path}" allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen  alt="number video" overflow="hide"></iframe>
-    <button  id='${youtubeId}-play' onclick="playVideo('${youtubeId}')"><img src="../static/images/play-button-arrowhead.svg" alt="Button Image" style="height: 20px; width: 20px;">.&nbsp;Play Audio</button>
-    <button id='${youtubeId}-stop' onclick="stopVideo('${youtubeId}')" style="display: none;"><img src="../static/images/pause.svg" alt="Button Image" style="height: 20px; width: 20px;">.&nbsp;Stop Audio</button>
-    </div></div>`
+    // Extract YouTube video ID
+    let youtubeId = null;
+    const watchMatch = path.match(/v=([^&]+)/);
+    const embedMatch = path.match(/embed\/([^?&]+)/);
+
+    if (watchMatch) {
+        youtubeId = watchMatch[1];
+    } else if (embedMatch) {
+        youtubeId = embedMatch[1];
+    }
+
+    if (!youtubeId) return "Invalid YouTube URL";
+
+    // Construct embed path
+    path = `https://www.youtube.com/embed/${youtubeId}?start=${start}&end=${end}&autoplay=0`;
+
+    let html = `
+    <div style="border:2px solid Gainsboro; margin: 10px; padding: 5px;">
+        <p>Scene ${choice_txt}.&nbsp;&nbsp;</p>
+        <div id="playerContainer${youtubeId}">
+            <iframe id='${youtubeId}-audio' frameborder="0" width="1" height="1"
+                src="${path}" allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen alt="number video" style="overflow: hidden;"></iframe>
+            <button id='${youtubeId}-play' onclick="playVideo('${youtubeId}')">
+                <img src="../static/images/play-button-arrowhead.svg" alt="Button Image" style="height: 20px; width: 20px;">&nbsp;Play Audio
+            </button>
+            <button id='${youtubeId}-stop' onclick="stopVideo('${youtubeId}')" style="display: none;">
+                <img src="../static/images/pause.svg" alt="Button Image" style="height: 20px; width: 20px;">&nbsp;Stop Audio
+            </button>
+        </div>
+    </div>`;
     return html;
 }
 
@@ -325,10 +386,7 @@ function make_dropdown(label, options, id, default_ind = 0) {
 async function filter_data() {
     // set up or update the filter
     change_filters();
-
-    console.log(filters);
-    // e.g. data/{"dataset": "CLEVR-Math", "number": 20}
-
+    
     // success event 
     let scriptEle = document.createElement("script");
     // scriptEle.setAttribute("src", `data/${filters.dataset}_test.js`);
@@ -340,31 +398,16 @@ async function filter_data() {
     scriptEle.addEventListener("load", () => {
         console.log("File loaded");
         res = test_data;
-        // console.log(res);
-
 
         // go over res and add pid to each element
         for (let i of Object.keys(res)) {
             res[i].pid = i;
         }
-
-        // // filter: source dataset
-        // // go through All the res dict and filter the data with the source name
-        // // split the source name with "-" and get the first element
-        // filters.source = filters.source.split(" (")[0];
-        // if (filters.source !== "All") {
-        //     for (let i of Object.keys(res)) {
-        //         if (res[i].metadata.source.toString() !== filters.source) {
-        //             delete res[i];
-        //         }
-        //     }
-        // }
-
         // filter: question type
         filters.question_type = filters.question_type.split(" (")[0];
         if (filters.question_type !== "All") {
             for (let i of Object.keys(res)) {
-                if (res[i].question_type.toString() !== filters.question_type) {
+                if (res[i].question_type !== filters.question_type) {
                     delete res[i];
                 }
             }
@@ -374,7 +417,7 @@ async function filter_data() {
         filters.answer_type = filters.answer_type.split(" (")[0];
         if (filters.answer_type !== "All") {
             for (let i of Object.keys(res)) {
-                if (res[i].answer_type.toString() !== filters.answer_type) {
+                if (res[i].answer_type !== filters.answer_type) {
                     delete res[i];
                 }
             }
@@ -385,7 +428,7 @@ async function filter_data() {
         filters.category = filters.category.split(" (")[0];
         if (filters.category !== "All") {
             for (let i of Object.keys(res)) {
-                if (res[i].category.toString() !== filters.category) {
+                if (res[i].category !== filters.category) {
                     delete res[i];
                 }
             }
@@ -395,7 +438,7 @@ async function filter_data() {
         filters.task = filters.task.split(" (")[0];
         if (filters.task !== "All") {
             for (let i of Object.keys(res)) {
-                if (res[i].selection_type.toString() !== filters.task) {
+                if (res[i].selection_type !== filters.task) {
                     delete res[i];
                 }
             }
