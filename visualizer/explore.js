@@ -196,7 +196,7 @@ function make_hint(hint) {
 
 function make_img(path, choice_txt) {
     if (path === null) return "";
-    let html = `<div style="border:2px solid Gainsboro; margin: 10px; padding: 5px;"><p>Scene ${choice_txt}.&nbsp;&nbsp;</p><img src="${path}" alt="number image" class="question-img" /></div>`;
+    let html = `<div style="border:2px solid Gainsboro; margin: 10px; padding: 5px;"><p>Scene ${choice_txt}.&nbsp;&nbsp;</p><img crossorigin="anonymous" src="${path}" alt="number image" class="question-img" /></div>`;
     return html;
 }
 
